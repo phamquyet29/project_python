@@ -1,0 +1,15 @@
+[
+  {
+    "id": 1,
+    "name": "New User",
+    "email": "p@gmail.com",
+    "password": "pbkdf2:sha256:600000$XILOt8goGWdknIdO$9154e952a06d0b34a2cdd6de9d0c93df8e5fa24cfcd246017402fc5c0b05daf2"
+  },
+  {
+    "id": 2,
+    "name": "New User",
+    "email": "admin@gmail.com",
+    "password": "pbkdf2:sha256:600000$rnITzmLTNMgNMePa$aa8bc03d039ef79db655a4bdd950d96183c12bbad5ae7ec96090cbcf11be9890",
+    "is_admin": true
+  }
+]

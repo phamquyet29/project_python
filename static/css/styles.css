@@ -1,0 +1,5 @@
+/* static/css/styles.css */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+/* Thêm các tùy chỉnh của bạn dưới đây */

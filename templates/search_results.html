@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search Results</title>
+  </head>
+  <body>
+    <h1>Kết quả tìm kiếm cho "{{ keyword }}"</h1>
+    <ul>
+      {% for post in posts %}
+      <li>
+        <h2>{{ post.title }}</h2>
+        <p>{{ post.content }}</p>
+        {% if post.image_url %}
+        <img
+          src="{{ post.image_url }}"
+          alt="Ảnh bài viết"
+          style="max-width: 300px"
+        />
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>

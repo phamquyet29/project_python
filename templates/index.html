@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <title>Báo Việt</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarTogglerDemo03"
+        aria-controls="navbarTogglerDemo03"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <a class="navbar-brand" href="#"
+        ><img
+          class="w-25 ms-5"
+          src="https://yt3.googleusercontent.com/x004E0HiAYxL05tMZX9-mJ8DpMadnMd9BbKvVTDCOyt_vrLqdEvYy-lpLmZrotSB_R1SoSJULm4=s176-c-k-c0x00ffffff-no-rj"
+          alt=""
+      /></a>
+
+      <div
+        class="collapse navbar-collapse d-flex justify-content-evenly"
+        id="navbarTogglerDemo03"
+      >
+        <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+          <li class="nav-item active pe-5">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item pe-5">
+            <a class="nav-link" href="/post">Bài viết</a>
+          </li>
+
+          <li class="nav-item">
+            {% if current_user.is_authenticated and current_user.role == 1 %}
+            <a class="nav-link" href="/admin">Admin</a>
+            {% endif %}
+          </li>
+        </ul>
+
+        <form class="form-inline my-2 my-lg-0 d-flex ms-5" method="POST">
+          <input
+            class="form-control mr-sm-2"
+            type="text"
+            placeholder="Search"
+            name="keyword"
+          />
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">
+            Search
+          </button>
+        </form>
+        <!-- Navbar code ... -->
+
+        <div>
+          <!-- Hiển thị khi chưa đăng nhập -->
+          {% if not current_user.is_authenticated %}
+          <a class="btn btn-danger" href="/login">Signin</a>
+          <a class="btn btn-secondary" href="/register">Signup</a>
+          {% endif %}
+
+          <!-- Hiển thị khi đã đăng nhập -->
+          {% if current_user.is_authenticated %}
+          <div class="d-flex">
+            <a class="navbar-text pe-3 text-decoration-none" href="">
+              <p class="navbar-text pe-3 pt-3">
+                Welcome, {{ current_user.name }}
+              </p>
+            </a>
+
+            <div>
+              <form method="POST" action="/logout" class="d-flex" role="search">
+                <button class="btn btn-danger mt-3" type="submit">
+                  Logout
+                </button>
+              </form>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Rest of the Navbar code ... -->
+      </div>
+    </nav>
+    <h1 class="text-center mt-5">Báo Việt</h1>
+
+    <div class="jumbotron">
+      <ul>
+        {% for post in posts %}
+        <li>
+          <strong class="display-4 fs-3 fw-medium">{{ post['title'] }}</strong>
+          <p class="lead">{{ post['content'] }}</p>
+          {% if post['image_url'] %}
+          <img
+            class="img-fluid"
+            style="width: 200px"
+            src="{{ post['image_url'] }}"
+            alt="Post Image"
+          />
+          {% endif %} {% if current_user.is_authenticated %} {# Kiểm tra xem
+          người dùng đã đăng nhập chưa #}
+          <a
+            class="btn btn-primary"
+            href="{{ url_for('edit', post_id=post['id']) }}"
+            >Chỉnh sửa</a
+          >
+          <button
+            class="btn btn-danger"
+            onclick="confirmDelete('{{ url_for('delete', post_id=post['id']) }}')"
+          >
+            Xoá
+          </button>
+          {% endif %}
+        </li>
+        <hr class="my-4" />
+        {% endfor %}
+      </ul>
+
+      <div class="d-flex justify-content-center">
+        {% if current_user.is_authenticated %} {# Kiểm tra xem người dùng đã
+        đăng nhập chưa #}
+        <a class="btn btn-primary mb-5" href="{{ url_for('create') }}"
+          >Tạo mới bài viết</a
+        >
+        {% endif %}
+      </div>
+    </div>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      function confirmDelete(url) {
+        var result = confirm("Bạn có chắc muốn xoá không?");
+        if (result) {
+          window.location.href = url;
+        }
+      }
+    </script>
+  </body>
+</html>
