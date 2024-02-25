@@ -1,2 +1,2 @@
 -Chạy ứng dụng : 
-flask run
+flask run hoặc python app.py
