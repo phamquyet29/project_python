@@ -16,39 +16,27 @@
 
     <form
       class="p-5 container"
+      action="{{ url_for('edit_comment', comment_id=comment.id) }}"
       method="post"
-      action="{{ url_for('edit', post_id=post['id']) }}"
-      enctype="multipart/form-data"
     >
       <div class="d-flex flex-column align-items-center">
-        <label for="title">Tiêu đề:</label>
         <input
           class="form-control col-sm w-50"
-          type="text"
-          name="title"
-          value="{{ post['title'] }}"
-          required
+          type="hidden"
+          name="comment_id"
+          value="{{ comment.id }}"
         />
         <br />
         <label for="content">Nội dung:</label>
         <textarea class="form-control col-sm w-50" name="content" required>
-{{ post['content'] }}</textarea
+          {{ comment.content }}</textarea
         >
 
         <br />
-        <label for="new_image">Chọn ảnh mới:</label>
-        <input
-          class="form-control w-50"
-          type="file"
-          name="new_image"
-          accept="image/*"
-        />
-        <br />
-        <input
-          class="btn btn-success mb-2"
-          type="submit"
-          value="Lưu chỉnh sửa"
-        />
+        <button class="btn btn-success mb-4" type="submit">Lưu</button>
+        <a class="btn btn-secondary" href="{{ url_for('index') }}"
+          >Quay trở lại</a
+        >
       </div>
     </form>
     <script

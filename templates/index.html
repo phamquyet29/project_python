@@ -99,25 +99,44 @@
       <ul>
         {% for post in posts %}
         <li>
-          <strong class="display-4 fs-3 fw-medium">{{ post['title'] }}</strong>
-          <p class="lead">{{ post['content'] }}</p>
-          {% if post['image_url'] %}
+          <strong class="display-4 fs-3 fw-medium">{{ post.title }}</strong>
+          <p class="lead">{{ post.content }}</p>
+          {% if post.image_url %}
           <img
             class="img-fluid"
             style="width: 200px"
-            src="{{ post['image_url'] }}"
+            src="{{ post.image_url }}"
             alt="Post Image"
           />
-          {% endif %} {% if current_user.is_authenticated %} {# Kiểm tra xem
-          người dùng đã đăng nhập chưa #}
+          {% endif %}
+          <h2>Comments</h2>
+          {% for comment in post.comments %}
+          <div class="comment">
+            <div class="border-bottom w-25">
+              <p>{{ comment.content }}</p>
+              <p>{{ comment.created_at.strftime('%d-%m-%Y %H:%M:%S') }}</p>
+            </div>
+          </div>
+          {% endfor %} {% if current_user.is_authenticated %}
+          <form
+            method="post"
+            action="{{ url_for('add_comment', post_id=post.id) }}"
+          >
+            <textarea
+              name="content"
+              placeholder="Nhập bình luận của bạn"
+            ></textarea>
+            <button class="btn btn-success" type="submit">Gửi bình luận</button>
+          </form>
+          {% endif %} {% if current_user.is_authenticated %}
           <a
             class="btn btn-primary"
-            href="{{ url_for('edit', post_id=post['id']) }}"
+            href="{{ url_for('edit', post_id=post.id) }}"
             >Chỉnh sửa</a
           >
           <button
             class="btn btn-danger"
-            onclick="confirmDelete('{{ url_for('delete', post_id=post['id']) }}')"
+            onclick="confirmDelete('{{ url_for('delete', post_id=post.id) }}')"
           >
             Xoá
           </button>
@@ -126,10 +145,8 @@
         <hr class="my-4" />
         {% endfor %}
       </ul>
-
       <div class="d-flex justify-content-center">
-        {% if current_user.is_authenticated %} {# Kiểm tra xem người dùng đã
-        đăng nhập chưa #}
+        {% if current_user.is_authenticated %}
         <a class="btn btn-primary mb-5" href="{{ url_for('create') }}"
           >Tạo mới bài viết</a
         >

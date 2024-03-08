@@ -1,9 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bootstrap import Bootstrap
+import pytz
 from flask_sqlalchemy import SQLAlchemy
 from flask import abort
-
+from datetime import datetime
+from flask_wtf import FlaskForm
+from flask_login import current_user
+from wtforms import TextAreaField, SubmitField
+from wtforms.validators import DataRequired
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -17,6 +22,10 @@ db = SQLAlchemy(app)
 app.static_folder = 'static'
 migrate = Migrate(app, db)
 bootstrap = Bootstrap(app)
+vn_tz = pytz.timezone('Asia/Ho_Chi_Minh')
+current_time_utc = datetime.utcnow()
+current_time_vn = current_time_utc.replace(tzinfo=pytz.utc).astimezone(vn_tz)
+formatted_time = current_time_vn.strftime('%d-%m-%Y %H:%M:%S')
 
 UPLOAD_FOLDER = 'static/images/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -27,6 +36,7 @@ class Post(db.Model):
     content = db.Column(db.Text, nullable=False)
     image_url = db.Column(db.String(100))
     status = db.Column(db.String(20), default='pending')
+    comments = db.relationship('Comment', backref='post_relation', lazy=True)
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,7 +54,18 @@ class User(UserMixin, db.Model):
             'role': self.role
         }
 
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    post = db.relationship('Post', backref='post_comments')
 
+
+
+class CommentForm(FlaskForm):
+    content = TextAreaField('Content', validators=[DataRequired()])
+    submit = SubmitField('Submit')
 # Hàm tải người dùng
 @login_manager.user_loader
 def load_user(user_id):
@@ -69,13 +90,26 @@ def index():
     if request.method == 'POST':
         keyword = request.form.get('keyword')
         if keyword:
-            # Thực hiện tìm kiếm nếu có keyword
             posts = Post.query.filter(Post.title.ilike(f'%{keyword}%')).all()
             return render_template('index.html', posts=posts, keyword=keyword)
-    # Nếu không có keyword hoặc không có dữ liệu từ form, hiển thị tất cả các bài viết
     posts = Post.query.all()
-    return render_template('index.html', posts=posts)
+    # Truy vấn tất cả các bình luận của mỗi bài viết
+    comments = {post.id: Comment.query.filter_by(post_id=post.id).all() for post in posts}
+    return render_template('index.html', posts=posts, comments=comments)
 
+
+# Bình luận
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post = Post.query.get_or_404(post_id)
+    content = request.form.get('content')
+    if content:
+        new_comment = Comment(content=content, post_id=post_id)  # Chuyển post_id từ tham số của hàm
+        db.session.add(new_comment)
+        db.session.commit()
+    return redirect(url_for('index'))
+ 
 
 @app.route('/post', methods=['GET', 'POST'])
 def post():  
@@ -101,7 +135,38 @@ def admin():
         return render_template('admin/admin.html', posts=posts)
     else:
         return "Unauthorized", 401  # Trả về mã lỗi 401 nếu user không phải admin
+@app.route('/admin/comments')
+@login_required
+def admin_comments():
+    if current_user.role != 1:  # Kiểm tra xem user có phải là admin không
+        abort(403)  # Trả về lỗi 403 nếu không phải admin
+        
+    comments = Comment.query.all()  # Truy vấn tất cả các bình luận từ cơ sở dữ liệu
+    return render_template('admin/comments.html', comments=comments)
 
+@app.route('/admin/comment/<int:comment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_comment(comment_id):
+    if current_user.role != 1:
+        abort(403)  # Trả về lỗi 403 nếu không phải admin
+    
+    comment = Comment.query.get_or_404(comment_id)
+    if request.method == 'POST':
+        comment.content = request.form['content']
+        db.session.commit()
+        return redirect(url_for('admin_comments'))
+    return render_template('admin/edit_comment.html', comment=comment)
+
+@app.route('/admin/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(comment_id):
+    if current_user.role != 1:
+        abort(403)  # Trả về lỗi 403 nếu không phải admin
+    
+    comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    return redirect(url_for('admin_comments'))
 @app.route('/search', methods=['GET'])
 def search():
     keyword = request.args.get('keyword', '')
